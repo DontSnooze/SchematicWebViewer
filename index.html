@@ -19,10 +19,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
     <script type="module">
 
-        var count = 0;
-        var mapLength = 0;
-        var mapWidth = 0;
-        var mapHeight = 0;
+        var count = 0
+        var mapLength = 0
+        var mapWidth = 0
+        var mapHeight = 0
+
+        var blockIndexArray = []
+        var currentBlockIndex = 0
+
+        var whiteColor = new THREE.Color( 0xffffff )
+        var redColor = new THREE.Color( 0xff0000 )
+        var greenColor = new THREE.Color( 0x00ff00 )
+        var blueColor = new THREE.Color( 0x0000ff )
 
         import * as THREE from "https://cdn.skypack.dev/pin/three@v0.131.3-QQa34rwf1xM5cawaQLl8/mode=imports/optimized/three.js"
         import { OrbitControls } from "https://cdn.skypack.dev/three@v0.131.3-QQa34rwf1xM5cawaQLl8/examples/jsm/controls/OrbitControls.js"
@@ -31,245 +39,253 @@
         const canvas = document.querySelector('.display')
 
         //create a scene
-        const scene = new THREE.Scene()        
-
-        //create a cube
-        /*
-        const cube = new THREE.Mesh(
-            //box geometry with a width, height and depth
-            new THREE.BoxGeometry(1, 1, 1),
-
-            //apply a mesh basic material to our mesh
-            new THREE.MeshBasicMaterial ({
-              color: 0x00ffff 
-            })
-        )
-
-        //add our mesh to the scene
-        scene.add(cube)
-        cube.position.setX(2)
-        cube.position.setZ(2)
-        */
+        const scene = new THREE.Scene()
 
         // grid
+        const gridHelper = new THREE.GridHelper( 21, 21 )
+        scene.add( gridHelper )
+        gridHelper.position.setY(-0.5)
 
-        const gridHelper = new THREE.GridHelper( 21, 21 );
-        scene.add( gridHelper );
-        gridHelper.position.setY(-0.5);
+        scene.background = new THREE.Color( 0x999999 )
 
-        scene.background = new THREE.Color( 0x999999 );
+        // light
+        const light = new THREE.DirectionalLight( 0xffffff )
+        light.position.set( 0.5, 1.0, 0.5 ).normalize()
 
-        const light = new THREE.DirectionalLight( 0xffffff );
-        light.position.set( 0.5, 1.0, 0.5 ).normalize();
+        scene.add( light )
 
-        scene.add( light );
+        // The X axis is red. The Y axis is green. The Z axis is blue.
+        const axesHelper = new THREE.AxesHelper( 5 )
+        scene.add( axesHelper );
 
-        //create camera
+        // camera
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100)
         scene.add(camera)
         camera.position.z = 50
 
-        //create renderer
+        // renderer
         const renderer = new THREE.WebGLRenderer({canvas})
         renderer.setSize(window.innerWidth, window.innerHeight - 50)
         renderer.render(scene, camera)
 
-        //instantiate OrbitControls after camera and canvas
-        const controls = new OrbitControls(camera, canvas);
+        // instantiate OrbitControls after camera and canvas
+        const controls = new OrbitControls(camera, canvas)
 
-        //smooth rotation of camera
-        controls.enableDamping = true;
+        camera.position.set( 0, 20, -20 )
 
-        //auto rotation of camera
-        // controls.autoRotate = true;
+        // smooth rotation of camera
+        controls.enableDamping = true
 
-        //create a call back function
+        // auto rotation of camera
+        // controls.autoRotate = true
+        controls.rotate
+
+        // call back function
         const updater = () => {
-            //call the same function again
+            // call the same function again
             window.requestAnimationFrame(updater)
 
-            //update the orbit controls with every function call
+            // update the orbit controls with every function call
             controls.update()
 
-            //render the scene again with every function call
+            // render the scene again with every function call
             renderer.render(scene, camera)
         }
 
-        //call the function
         updater()
 
-        function Block() {
+        function Block(color = whiteColor) {
             this.mesh = new THREE.Mesh(
-                //box geometry with a width, height and depth
+                // box geometry with a width, height and depth
                 new THREE.BoxGeometry(1, 1, 1),
 
-                //apply a mesh basic material to our mesh
+                // basic material to our mesh
                 new THREE.MeshBasicMaterial ({
-                  color: 0x00ffff 
+                  color: color,
+                  transparent: true,
+                  opacity: 0.7
                 })
             )
         }
 
-        var xInput = document.getElementById("xInput");
-        var yInput = document.getElementById("yInput");
-        var zInput = document.getElementById("zInput");
+        var xInput = document.getElementById("xInput")
+        var yInput = document.getElementById("yInput")
+        var zInput = document.getElementById("zInput")
 
         function addBlock() {
-            var x = document.getElementById("xInput").value;
-            var y = document.getElementById("yInput").value;
-            var z = document.getElementById("zInput").value;
+            var x = document.getElementById("xInput").value
+            var y = document.getElementById("yInput").value
+            var z = document.getElementById("zInput").value
 
-            document.getElementById("console").innerHTML = "addBlock pressed [" + count + "]: " + x + ", " + y + ", " + z;
-            count++;
+            document.getElementById("console").innerHTML = "addBlock pressed [" + count + "]: " + x + ", " + y + ", " + z
+            count++
 
-            let block = new Block();
+            let block = new Block()
 
-            scene.add(block.mesh);
-            block.mesh.position.setX(x);
-            block.mesh.position.setY(y);
-            block.mesh.position.setZ(z);
-
-            // wireframe
-            var geo = new THREE.EdgesGeometry( block.mesh.geometry );
-            var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 4 } );
-            var wireframe = new THREE.LineSegments( geo, mat );
-            wireframe.renderOrder = 1; // make sure wireframes are rendered 2nd
-            block.mesh.add( wireframe );
-        }
-
-        function addNewBlock(x, y, z) {
-
-            document.getElementById("console").innerHTML = "addBlock pressed [" + count + "]: " + x + ", " + y + ", " + z;
-            count++;
-
-            let block = new Block();
-
-            scene.add(block.mesh);
-            block.mesh.position.setX(x);
-            block.mesh.position.setY(y);
-            block.mesh.position.setZ(z);
+            scene.add(block.mesh)
+            block.mesh.position.setX(x)
+            block.mesh.position.setY(y)
+            block.mesh.position.setZ(z)
 
             // wireframe
-            var geo = new THREE.EdgesGeometry( block.mesh.geometry );
-            var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 4 } );
-            var wireframe = new THREE.LineSegments( geo, mat );
-            wireframe.renderOrder = 1; // make sure wireframes are rendered 2nd
-            block.mesh.add( wireframe );
+            var geo = new THREE.EdgesGeometry( block.mesh.geometry )
+            var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 4 } )
+            var wireframe = new THREE.LineSegments( geo, mat )
+            wireframe.renderOrder = 1 // make sure wireframes are rendered 2nd
+            block.mesh.add( wireframe )
         }
 
-        var el = document.getElementById("addBlockButton");
-        el.addEventListener("click", addBlock, false);
-
-        var file = [];
-
-        const fileSelector = document.getElementById('file-selector');
-
-        fileSelector.addEventListener('change', (event) => {
-            const fileList = event.target.files;
-            file = fileList[0];
-            // console.log(file);
-            parseNbt();
-
-        });
-
-        function parseNbt() {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                // console.log(reader.result);
-
-
-                //... fill input data here
-                var result = reader.result;
-                const output = pako.inflate(result);
-                // console.log("pako.inflate(result):")
-                // console.log(output);
-                nbt.parse(output, function(error, data) {
-                    if (error) { throw error; }
-                    // console.log(data.value.stringTest.value);
-                    // console.log(data.value['nested compound test'].value);
-
-                    // console.log(data);
-                    // console.log("\n\nblocks:");
-                    // console.log(data.value.Blocks);
-
-                    mapWidth = data.value.Width.value;
-                    mapHeight = data.value.Height.value;
-                    mapLength = data.value.Length.value;
-
-                    parseBlockData(data.value.Blocks.value)
-
-                    
-                });
-            }
-
-            reader.readAsArrayBuffer(file);
-        }
-
-        function parseBlockData(blockData) {
-            console.log("parseBlockData");
-
-            for (var i = 0; i < blockData.length; i++) {
-                var blockType = blockData[i];
+        function addNextBlock() {
+            for (var i = currentBlockIndex; i < blockIndexArray.length; i++) {
+                currentBlockIndex = i
+                var blockType = blockIndexArray[i]
                 if (blockType != 0) {
-                    blockFromIndex(i);
+                    // console.log("blockType: " + blockType)
+                    var blockColor = whiteColor
+
+                    // test colors
+                    // blue = glass 20
+                    // white = iron_block 42
+                    // red = cobble 4
+                    // green = grass 2
+
+                    var blueType = 20
+                    var whiteType = 42
+                    var redType = 4
+                    var greenType = 2
+
+                    if (blockType == 2 || blockType == 248 || blockType == greenType) {
+                        blockColor = greenColor;
+                    } else if (blockType == 42 || blockType == 235 || blockType == whiteType) {
+                        blockColor = whiteColor
+                    } else if (blockType == 246 || blockType == blueType) {
+                        blockColor = blueColor
+                    } else if (blockType == 249 || blockType == redType) {
+                        blockColor = redColor
+                    }
+
+                    blockFromIndex(i, blockColor)
+                    currentBlockIndex++
+                    break
                 }
             }
         }
 
-        function blockFromIndex(index) {
-            let x = 0;
-            let y = 0;
-            let z = 0;
+        function addAllBlocks() {
+            parseBlockData(blockIndexArray)
+        }
+
+        function addNewBlock(x, y, z, color = whiteColor) {
+
+            document.getElementById("console").innerHTML = "[" + count + "] addNewBlock[" + currentBlockIndex + "]: " + x + ", " + y + ", " + z
+            count++
+
+            let block = new Block(color)
+
+            scene.add(block.mesh)
+            block.mesh.position.setX(x)
+            block.mesh.position.setY(y)
+            block.mesh.position.setZ(z)
+
+            // wireframe border
+            var geo = new THREE.EdgesGeometry( block.mesh.geometry )
+            var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 1 } )
+            var wireframe = new THREE.LineSegments( geo, mat )
+            wireframe.renderOrder = 1 // make sure wireframes are rendered 2nd
+            block.mesh.add( wireframe )
+        }
+
+        var addBlockButton = document.getElementById("addBlockButton")
+        addBlockButton.addEventListener("click", addBlock, false)
+
+        var addNextBlockButton = document.getElementById("addNextBlockButton")
+        addNextBlockButton.addEventListener("click", addNextBlock, false)
+
+        var addAllBlocksButton = document.getElementById("addAllBlocksButton")
+        addAllBlocksButton.addEventListener("click", addAllBlocks, false)
+
+        var file = []
+
+        const fileSelector = document.getElementById('file-selector')
+
+        fileSelector.addEventListener('change', (event) => {
+            const fileList = event.target.files
+            file = fileList[0]
+            // console.log(file)
+            parseNbt()
+        })
+
+        function parseNbt() {
+            var reader = new FileReader()
+            reader.onload = function(e) {
+                var result = reader.result
+                const output = pako.inflate(result)
+                nbt.parse(output, function(error, data) {
+                    if (error) { throw error }
+                    // console.log(data)
+
+                    mapWidth = data.value.Width.value
+                    mapHeight = data.value.Height.value
+                    mapLength = data.value.Length.value
+
+                    // console.log("mapWidth: " + mapWidth)
+                    // console.log("mapHeight: " + mapHeight)
+                    // console.log("mapLength: " + mapLength)
+                    
+                    blockIndexArray = data.value.Blocks.value
+                    // console.log(blockIndexArray)
+                    document.getElementById("console").innerHTML = "File loaded"                   
+                });
+            }
+
+            reader.readAsArrayBuffer(file)
+        }
+
+        function parseBlockData(blockData) {
+            for (var i = currentBlockIndex; i < blockData.length; i++) {
+                addNextBlock()
+            }
+        }
+
+        function blockFromIndex(index, color = whiteColor) {
+            let x = 0
+            let y = 0
+            let z = 0
 
             // get y
-            var mapPlaneCount = mapWidth * mapLength; // = 224
-            var mapBlockCount = mapPlaneCount * mapHeight; // 3360
-            var currentPlaneCount = mapPlaneCount;
+            var mapPlaneCount = mapWidth * mapLength
+            var mapBlockCount = mapPlaneCount * mapHeight
+            var currentPlaneCount = mapPlaneCount
 
             for (var i = 0; i < mapHeight; i++) {
                 if (index < currentPlaneCount) {
-                    y = i;
-
-                    break;
+                    y = i
+                    break
                 } else {
-                    currentPlaneCount += mapPlaneCount;
+                    currentPlaneCount += mapPlaneCount
                 }
             }
 
             // get z
-            var mapPlaneLengthCount = mapLength; // = 14
-            var currentLengthCount = (y * mapPlaneCount) + mapPlaneLengthCount;
-
-            // console.log("mapPlaneLengthCount: " + mapPlaneLengthCount);
-            // console.log("currentLengthCount: " + currentLengthCount);
+            var mapPlaneLengthCount = mapLength
+            var currentLengthCount = (y * mapPlaneCount) + mapWidth
 
             for (var i = 0; i < mapPlaneLengthCount; i++) {
-                // console.log("loop: currentLengthCount: " + currentLengthCount);
                 if (index < currentLengthCount) {
-                    z = i;
-
-                    break;
+                    z = i
+                    break
                 } else {
-                    currentLengthCount += mapPlaneLengthCount;
+                    currentLengthCount += mapWidth
                 }
             }
 
             // get x
-            var mapPlaneWidthCount = mapWidth; // = 16
-            var currentWidthCount = (y * mapPlaneCount) + (z * mapPlaneLengthCount);
-
-            // console.log("y * mapPlaneCount: " + (y * mapPlaneCount));
-            // console.log("z * mapPlaneLengthCount: " + (z * mapPlaneLengthCount));
-            // console.log("mapPlaneWidthCount: " + mapPlaneWidthCount);
-            // console.log("currentWidthCount: " + currentWidthCount);
+            var mapPlaneWidthCount = mapWidth
+            var currentWidthCount = (y * mapPlaneCount) + (z * mapPlaneWidthCount)
 
             x = index - currentWidthCount
 
-            // console.log("x: " + x);
-            // console.log("y: " + y);
-            // console.log("z: " + z);
-
-            addNewBlock(x, y, z)
+            addNewBlock(x, y, z, color)
         }
 
     </script>
@@ -279,11 +295,15 @@
     <br>
     <div>
         <button id="addBlockButton">Add Block</button>
-        <span id="console">Console</span>
-        x: <input type="text" id="xInput" value="0">
-        y: <input type="text" id="yInput" value="0">
-        z: <input type="text" id="zInput" value="0">
-        file: <input type="file" id="file-selector">
+        x: <input type="text" id="xInput" value="0" size="3">
+        y: <input type="text" id="yInput" value="0" size="3">
+        z: <input type="text" id="zInput" value="0" size="3">
+
+        <span style="margin-left: 60px;">
+            View schematic: <input type="file" id="file-selector"></span>
+        <button id="addNextBlockButton">Add Next Block</button>
+        <button id="addAllBlocksButton">Add All Blocks</button>
+        <span id="console"></span>
     </div>
 </body>
 </html>
