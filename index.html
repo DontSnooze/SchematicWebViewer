@@ -232,9 +232,16 @@
                     // console.log("mapHeight: " + mapHeight)
                     // console.log("mapLength: " + mapLength)
                     
-                    blockIndexArray = data.value.Blocks.value
+                    var resultText = "File loaded"
+                    if (typeof data.value.Blocks !== 'undefined') {
+                        blockIndexArray = data.value.Blocks.value
+                    } else if (typeof data.value.BlockData !== 'undefined') {
+                        blockIndexArray = data.value.BlockData.value
+                    } else {
+                        resultText = "File error: could not find block data"
+                    }
                     // console.log(blockIndexArray)
-                    document.getElementById("console").innerHTML = "File loaded"                   
+                    document.getElementById("console").innerHTML = resultText                   
                 });
             }
 
