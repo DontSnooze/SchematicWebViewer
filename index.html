@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Your First Three.js Scene</title>
+    <title>Amos's First Three.js Scene</title>
     <style>
         *{
             margin: 0;
@@ -17,6 +17,7 @@
     </style>
     <script src="nbt.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
+
     <script type="module">
 
         var count = 0
@@ -34,6 +35,7 @@
 
         import * as THREE from "https://cdn.skypack.dev/pin/three@v0.131.3-QQa34rwf1xM5cawaQLl8/mode=imports/optimized/three.js"
         import { OrbitControls } from "https://cdn.skypack.dev/three@v0.131.3-QQa34rwf1xM5cawaQLl8/examples/jsm/controls/OrbitControls.js"
+        import * as BlockMesh from "./BlockMeshes.js"
 
         //instantiate canvas
         const canvas = document.querySelector('.display')
@@ -120,19 +122,12 @@
             document.getElementById("console").innerHTML = "addBlock pressed [" + count + "]: " + x + ", " + y + ", " + z
             count++
 
-            let block = new Block()
+            let block = new BlockMesh.Dirt()
 
             scene.add(block.mesh)
             block.mesh.position.setX(x)
             block.mesh.position.setY(y)
             block.mesh.position.setZ(z)
-
-            // wireframe
-            var geo = new THREE.EdgesGeometry( block.mesh.geometry )
-            var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 4 } )
-            var wireframe = new THREE.LineSegments( geo, mat )
-            wireframe.renderOrder = 1 // make sure wireframes are rendered 2nd
-            block.mesh.add( wireframe )
         }
 
         function addNextBlock() {
@@ -143,28 +138,7 @@
                     // console.log("blockType: " + blockType)
                     var blockColor = whiteColor
 
-                    // test colors
-                    // blue = glass 20
-                    // white = iron_block 42
-                    // red = cobble 4
-                    // green = grass 2
-
-                    var blueType = 20
-                    var whiteType = 42
-                    var redType = 4
-                    var greenType = 2
-
-                    if (blockType == 2 || blockType == 248 || blockType == greenType) {
-                        blockColor = greenColor;
-                    } else if (blockType == 42 || blockType == 235 || blockType == whiteType) {
-                        blockColor = whiteColor
-                    } else if (blockType == 246 || blockType == blueType) {
-                        blockColor = blueColor
-                    } else if (blockType == 249 || blockType == redType) {
-                        blockColor = redColor
-                    }
-
-                    blockFromIndex(i, blockColor)
+                    blockFromIndex(i, blockColor, blockType)
                     currentBlockIndex++
                     break
                 }
@@ -175,24 +149,17 @@
             parseBlockData(blockIndexArray)
         }
 
-        function addNewBlock(x, y, z, color = whiteColor) {
+        function addNewBlock(x, y, z, color = whiteColor, blockType = -1) {
 
-            document.getElementById("console").innerHTML = "[" + count + "] addNewBlock[" + currentBlockIndex + "]: " + x + ", " + y + ", " + z
+            document.getElementById("console").innerHTML = "[" + count + "] addNewBlock[" + currentBlockIndex + "]: " + x + ", " + y + ", " + z + "type: " + blockType
             count++
 
-            let block = new Block(color)
+            let block = new BlockMesh.blockFromType(blockType)
 
             scene.add(block.mesh)
             block.mesh.position.setX(x)
             block.mesh.position.setY(y)
             block.mesh.position.setZ(z)
-
-            // wireframe border
-            var geo = new THREE.EdgesGeometry( block.mesh.geometry )
-            var mat = new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 1 } )
-            var wireframe = new THREE.LineSegments( geo, mat )
-            wireframe.renderOrder = 1 // make sure wireframes are rendered 2nd
-            block.mesh.add( wireframe )
         }
 
         var addBlockButton = document.getElementById("addBlockButton")
@@ -254,7 +221,7 @@
             }
         }
 
-        function blockFromIndex(index, color = whiteColor) {
+        function blockFromIndex(index, color = whiteColor, blockType = -1) {
             let x = 0
             let y = 0
             let z = 0
@@ -292,10 +259,11 @@
 
             x = index - currentWidthCount
 
-            addNewBlock(x, y, z, color)
+            addNewBlock(x, y, z, color, blockType)
         }
 
     </script>
+    
 </head>
 <body>
     <canvas class="display"></canvas>
