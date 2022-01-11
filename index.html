@@ -146,7 +146,25 @@
         }
 
         function addAllBlocks() {
-            parseBlockData(blockIndexArray)
+            // parseBlockData(blockIndexArray)
+
+            var blocks = new THREE.Object3D();
+
+            for (var i = currentBlockIndex; i < blockIndexArray.length; i++) {
+                currentBlockIndex = i
+                var blockType = blockIndexArray[i]
+                if (blockType != 0) {
+                    // console.log("blockType: " + blockType)
+                    var blockColor = whiteColor
+
+                    var block = getBlockFromIndex(i, blockColor, blockType)
+                    blocks.add( block.mesh )
+                    currentBlockIndex++
+                    // break
+                }
+            }
+
+            scene.add( blocks );
         }
 
         function addNewBlock(x, y, z, color = whiteColor, blockType = -1) {
@@ -160,6 +178,21 @@
             block.mesh.position.setX(x)
             block.mesh.position.setY(y)
             block.mesh.position.setZ(z)
+        }
+
+        function getNewBlock(x, y, z, color = whiteColor, blockType = -1) {
+
+            // document.getElementById("console").innerHTML = "[" + count + "] addNewBlock[" + currentBlockIndex + "]: " + x + ", " + y + ", " + z + "type: " + blockType
+            // count++
+
+            let block = new BlockMesh.blockFromType(blockType)
+
+            // scene.add(block.mesh)
+            block.mesh.position.setX(x)
+            block.mesh.position.setY(y)
+            block.mesh.position.setZ(z)
+
+            return block
         }
 
         var addBlockButton = document.getElementById("addBlockButton")
@@ -189,7 +222,7 @@
                 const output = pako.inflate(result)
                 nbt.parse(output, function(error, data) {
                     if (error) { throw error }
-                    // console.log(data)
+                    console.log(data)
 
                     mapWidth = data.value.Width.value
                     mapHeight = data.value.Height.value
@@ -260,6 +293,47 @@
             x = index - currentWidthCount
 
             addNewBlock(x, y, z, color, blockType)
+        }
+
+        function getBlockFromIndex(index, color = whiteColor, blockType = -1) {
+            let x = 0
+            let y = 0
+            let z = 0
+
+            // get y
+            var mapPlaneCount = mapWidth * mapLength
+            var mapBlockCount = mapPlaneCount * mapHeight
+            var currentPlaneCount = mapPlaneCount
+
+            for (var i = 0; i < mapHeight; i++) {
+                if (index < currentPlaneCount) {
+                    y = i
+                    break
+                } else {
+                    currentPlaneCount += mapPlaneCount
+                }
+            }
+
+            // get z
+            var mapPlaneLengthCount = mapLength
+            var currentLengthCount = (y * mapPlaneCount) + mapWidth
+
+            for (var i = 0; i < mapPlaneLengthCount; i++) {
+                if (index < currentLengthCount) {
+                    z = i
+                    break
+                } else {
+                    currentLengthCount += mapWidth
+                }
+            }
+
+            // get x
+            var mapPlaneWidthCount = mapWidth
+            var currentWidthCount = (y * mapPlaneCount) + (z * mapPlaneWidthCount)
+
+            x = index - currentWidthCount
+
+            return getNewBlock(x, y, z, color, blockType)
         }
 
     </script>
