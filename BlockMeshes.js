@@ -4,6 +4,7 @@ var whiteColor = new THREE.Color( 0xffffff )
 var redColor = new THREE.Color( 0xff0000 )
 var greenColor = new THREE.Color( 0x00ff00 )
 var blueColor = new THREE.Color( 0x0000ff )
+var geometry = new THREE.BoxBufferGeometry(1, 1, 1)
 
 // 2: Grass
 function Grass() {
@@ -125,7 +126,7 @@ function OneImageBlock(imagePath) {
 	} );
 
 	this.mesh = new THREE.Mesh(
-		new THREE.BoxBufferGeometry(1, 1, 1),
+		geometry,
 		material
 	)
 
@@ -165,15 +166,14 @@ function SixImageBlock(pxImagePath, nxImagePath, pyImagePath, nyImagePath, pzIma
 	];
 
 	this.mesh = new THREE.Mesh(
-		new THREE.BoxBufferGeometry(1, 1, 1),
+		geometry,
 		materialArray
 	)
 }
 
 function EmptyBlock(color = whiteColor) {
     this.mesh = new THREE.Mesh(
-        // box geometry with a width, height and depth
-        new THREE.BoxBufferGeometry(1, 1, 1),
+        geometry,
 
         // basic material to our mesh
         new THREE.MeshBasicMaterial ({
