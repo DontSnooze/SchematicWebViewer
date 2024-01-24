@@ -26,6 +26,7 @@
         var mapHeight = 0
 
         var blockIndexArray = []
+        var blockIDs = {}
         var currentBlockIndex = 0
 
         var whiteColor = new THREE.Color( 0xffffff )
@@ -240,7 +241,15 @@
                     } else {
                         resultText = "File error: could not find block data"
                     }
-                    // console.log(blockIndexArray)
+
+                    if (typeof data.value.blockIDs !== 'undefined') {
+                        blockIDs = data.value.blockIDs.value
+                    } else {
+                        resultText = "File error: could not find blockIDs"
+                    }
+
+
+                    console.log(blockIDs)
                     document.getElementById("console").innerHTML = resultText                   
                 });
             }
